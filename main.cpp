@@ -17,7 +17,7 @@ int main(int argv, char * argc[])
     NetworkClient client;
     watcher.addListener(&client);
     std::cout << "start" << std::endl;
-    client.start();
+    //client.start();
     watcher.start();
     std::cout << "end" << std::endl;
     //watcher.send(1.0);

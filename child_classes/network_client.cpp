@@ -1,17 +1,40 @@
 #include "network_client.h"
-NetworkClient::NetworkClient(QHostAddress addr, int port):
-    addr(addr),
-    port(port)
-{}
-NetworkClient::NetworkClient()
+NetworkClient::NetworkClient(const char* addr, int port):
+    port(htons(port))
 {
-    NetworkClient(QHostAddress::LocalHost, 8081);
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(addr);
+    std::cout << serv_addr.sin_addr.s_addr << std::endl;
+    serv_addr.sin_port = htons(port);
+    sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock < 0)
+    {
+        perror("[Error]");
+    }
 }
-void NetworkClient::run()
+NetworkClient::NetworkClient():
+    NetworkClient("127.0.0.1", 8081)
+{}
+NetworkClient::~NetworkClient()
 {
-    sock = new QUdpSocket;
+    close(sock);
+}
+void NetworkClient::recieve(double d)
+{
+    std::cout << "recieved" << d << std::endl;
+    double_bytes dbytes;
+    dbytes.d = d;
+    int sent_size = sendto(sock, dbytes.bytes, sizeof(dbytes), 0, (struct sockaddr*) &serv_addr, sizeof(serv_addr)); 
+    if (sent_size < 0)
+    {
+        perror("[Error]");
+    }
+    else std::cout << sent_size << std::endl;
+}
+void NetworkClient::clear(){}
+/*void NetworkClient::run()
+{
     //std::cout << "Created socket "  << sock << std::endl;
-    QueueListenerBackgroundService<double>::run();
 }
 void NetworkClient::process(double d)
 {
@@ -29,4 +52,4 @@ void NetworkClient::process(double d)
     out << dbytes.d;
     out.setVersion(QDataStream::Qt_5_13);
     sock -> writeDatagram(datagram, addr, port);
-}
+}*/
